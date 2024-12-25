@@ -219,6 +219,8 @@ if [[ "$MY_MODE" == "delete" ]]; then
 		exit_with_failure "Failed to get ID of the Hetzner Cloud Server!"
 	fi
 
+	# Send a DELETE request to the Hetzner Cloud API to delete the server.
+	# https://docs.hetzner.cloud/#servers-delete-a-server
 	echo "Delete server..."
 	curl \
 		-X DELETE \
@@ -229,7 +231,9 @@ if [[ "$MY_MODE" == "delete" ]]; then
 		|| exit_with_failure "Error deleting server!"
 	echo "Hetzner Cloud Server deleted successfully."
 
-	echo "List self-hosted runners for repository..."
+	# List self-hosted runners for repository
+	# https://docs.github.com/en/rest/actions/self-hosted-runners?apiVersion=2022-11-28#list-self-hosted-runners-for-a-repository
+	echo "List self-hosted runners..."
 	curl -L \
 		--fail-with-body \
 		-o "github-runners.json" \
@@ -245,7 +249,9 @@ if [[ "$MY_MODE" == "delete" ]]; then
 		exit_with_failure "Failed to get ID of the GitHub Actions Runner!"
 	fi
 
-	echo "Delete GitHub Actions Runner from repository..."
+	# Delete a self-hosted runner from repository
+	# https://docs.github.com/en/rest/actions/self-hosted-runners?apiVersion=2022-11-28#delete-a-self-hosted-runner-from-a-repository
+	echo "Delete GitHub Actions Runner..."
 	curl -L \
 		-X DELETE \
 		--fail-with-body \
@@ -269,7 +275,7 @@ fi
 
 # Create GitHub Actions registration token for registering a self-hosted runner to a repository
 # https://docs.github.com/en/rest/actions/self-hosted-runners#create-a-registration-token-for-a-repository
-echo "Create GitHub Actions Runner registration token for GitHub repository..."
+echo "Create GitHub Actions Runner registration token..."
 curl -L \
 	-X "POST" \
 	--fail-with-body \
@@ -356,6 +362,7 @@ if [[ "$MY_NETWORK" != "null" ]]; then
 fi
 
 # Send a POST request to the Hetzner Cloud API to create a server.
+# https://docs.hetzner.cloud/#servers-create-a-server
 echo "Create server..."
 if ! curl \
 	-X POST \
@@ -391,6 +398,7 @@ RETRY_COUNT=0
 echo "Wait for server..."
 while [[ $RETRY_COUNT -lt $MAX_RETRIES ]]; do
 	# Download and parse server status
+	# https://docs.hetzner.cloud/#servers-get-a-server
 	curl -s \
 		-o "servers.json" \
 		-H "Content-Type: application/json" \
@@ -420,6 +428,8 @@ MAX_RETRIES=$MY_RUNNER_WAIT
 RETRY_COUNT=0
 echo "Wait for GitHub Actions Runner registration..."
 while [[ $RETRY_COUNT -lt $MAX_RETRIES ]]; do
+	# List self-hosted runners for repository
+	# https://docs.github.com/en/rest/actions/self-hosted-runners?apiVersion=2022-11-28#list-self-hosted-runners-for-a-repository
 	curl -L -s \
 		-o "github-runners.json" \
 		-H "Accept: application/vnd.github+json" \
