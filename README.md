@@ -90,7 +90,7 @@ on:
 jobs:
   create-runner:
     name: Create Hetzner Cloud runner
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     outputs:
       label: ${{ steps.create-hcloud-runner.outputs.label }}
       server_id: ${{ steps.create-hcloud-runner.outputs.server_id }}
@@ -103,6 +103,7 @@ jobs:
           github_token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
           hcloud_token: ${{ secrets.HCLOUD_TOKEN }}
           server_type: cx22
+          location: nbg1  # Nuremberg, Germany
           image: rocky-9 # Rocky Linux 9
 
   do-the-job:
@@ -120,7 +121,7 @@ jobs:
     needs:
       - create-runner # required to get output from the create-runner job
       - do-the-job # required to wait when the main job is done
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     if: ${{ always() }} # required to stop the runner even if the error happened in the previous jobs
     steps:
       - name: Delete runner
