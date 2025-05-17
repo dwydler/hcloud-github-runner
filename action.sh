@@ -387,6 +387,7 @@ while [[ $RETRY_COUNT -lt $MAX_RETRIES ]]; do
 		break
 	else
 		# Check if the error is related to resource unavailability
+		# Workaround for https://status.hetzner.com/incident/aa5ce33b-faa5-4fd0-9782-fde43cd270cf
 		if grep -q -E "resource_unavailable|resource_limit_exceeded" "servers.json"; then
 			echo "Resource limitation detected."
 		# If error is not resource-related, don't retry
