@@ -208,7 +208,7 @@ fi
 # Set maximal wait time (retries * 10 sec) for Hetzner Server creation (default: 360 [1 hour])
 # If INPUT_CREATE_WAIT is set, use its value; otherwise, use "360".
 MY_CREATE_WAIT=${INPUT_CREATE_WAIT:-360}
-if [[ ! "$MY_CREATE_RETRIES" =~ ^[0-9]+$ ]]; then
+if [[ ! "$MY_CREATE_WAIT" =~ ^[0-9]+$ ]]; then
 	exit_with_failure "The maximum wait time (retries) for Hetzner Server creation must be an integer!"
 fi
 
