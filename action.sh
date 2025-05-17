@@ -388,12 +388,12 @@ while [[ $RETRY_COUNT -lt $MAX_RETRIES ]]; do
 	else
 		# Check if the error is related to resource unavailability
 		if grep -q -E "resource_unavailable|resource_limit_exceeded" "servers.json"; then
-  			echo "Resource limitation detected."
-                # If error is not resource-related, don't retry
-	 	else
-            		cat "servers.json"
-  			exit_with_failure "Failed to create Server in Hetzner Cloud!"
-        	fi
+			echo "Resource limitation detected."
+		# If error is not resource-related, don't retry
+		else
+			cat "servers.json"
+			exit_with_failure "Failed to create Server in Hetzner Cloud!"
+		fi
 	fi
 
 	RETRY_COUNT=$((RETRY_COUNT + 1)) # Increment retry counter
