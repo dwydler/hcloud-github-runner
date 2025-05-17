@@ -73,6 +73,11 @@ inputs:
       'skip' will skip the installation. A working installation is expected in the 'runner_dir'.
     required: false
     default: 'latest'
+  create_wait:
+    description: >-
+      Wait up to 'create_wait' retries (10 sec each) to create the Hetzner Cloud Server resource (default: 360 = 1 hour).
+    required: false
+    default: '360'
   runner_wait:
     description: >-
       Wait up to 'runner_wait' retries (10 sec each) for runner registration (default: 10 minutes).
@@ -142,3 +147,4 @@ runs:
         INPUT_SERVER_TYPE: ${{ inputs.server_type }}
         INPUT_SERVER_WAIT: ${{ inputs.server_wait }}
         INPUT_SSH_KEY: ${{ inputs.ssh_key }}
+        INPUT_CREATE_WAIT: ${{ inputs.create_wait }}

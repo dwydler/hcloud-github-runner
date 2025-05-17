@@ -141,6 +141,7 @@ jobs:
 
 | Name                | Required | Description | Default |
 |---------------------|----------|-------------|---------|
+| `create_wait`       |   | Wait up to 'create_wait' retries (10 sec each) to create the Hetzner Cloud Server resource. | `360` (1 hour) |
 | `enable_ipv4`       |   | Attach an IPv4 on the public NIC (true/false). If false, no IPv4 address will be attached. Warning: The GitHub API requires IPv4. Disabling it will result in connection failures. | `true` |
 | `enable_ipv6`       |   | Attach an IPv6 on the public NIC (true/false). If false, no IPv6 address will be attached. | `true` |
 | `github_token`      | ✓ (always) | Fine-grained GitHub Personal Access Token (PAT) with 'Read and write' access to 'Administration' assigned. |  |

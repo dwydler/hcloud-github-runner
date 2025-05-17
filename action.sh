@@ -197,12 +197,19 @@ if [[ "$MY_RUNNER_VERSION" != "latest" && "$MY_RUNNER_VERSION" != "skip" && ! "$
 	exit_with_failure "'$MY_RUNNER_VERSION' is not a valid GitHub Actions Runner version! Enter 'latest', 'skip' or the version without 'v'."
 fi
 
-# Set maximal wait time (retries * 10 sec) for GitHub Actions Runner registration (default: 30 [5 min])
-# If MY_RUNNER_WAIT is set, use its value; otherwise, use "30".
+# Set maximal wait time (retries * 10 sec) for GitHub Actions Runner registration (default: 60 [10 min])
+# If INPUT_RUNNER_WAIT is set, use its value; otherwise, use "60".
 MY_RUNNER_WAIT=${INPUT_RUNNER_WAIT:-"60"}
 # Check if MY_RUNNER_WAIT is an integer
 if [[ ! "$MY_RUNNER_WAIT" =~ ^[0-9]+$ ]]; then
-	exit_with_failure "The maximum wait time (reties) for GitHub Action Runner registration must be an integer!"
+	exit_with_failure "The maximum wait time (retries) for GitHub Action Runner registration must be an integer!"
+fi
+
+# Set maximal wait time (retries * 10 sec) for Hetzner Server creation (default: 360 [1 hour])
+# If INPUT_CREATE_WAIT is set, use its value; otherwise, use "360".
+MY_CREATE_WAIT=${INPUT_CREATE_WAIT:-360}
+if [[ ! "$MY_CREATE_RETRIES" =~ ^[0-9]+$ ]]; then
+	exit_with_failure "The maximum wait time (retries) for Hetzner Server creation must be an integer!"
 fi
 
 # Set Hetzner Cloud Server ID
@@ -363,8 +370,12 @@ fi
 
 # Send a POST request to the Hetzner Cloud API to create a server.
 # https://docs.hetzner.cloud/#servers-create-a-server
-echo "Create server..."
-if ! curl \
+MAX_RETRIES=$MY_CREATE_WAIT
+RETRY_COUNT=0
+WAIT_SEC=10
+while [[ $RETRY_COUNT -lt $MAX_RETRIES ]]; do
+	echo "Create Server..."
+	if curl \
 	-X POST \
 	--fail-with-body \
 	-o "servers.json" \
@@ -372,9 +383,24 @@ if ! curl \
 	-H "Authorization: Bearer ${MY_HETZNER_TOKEN}" \
 	-d @create-server.json \
 	"https://api.hetzner.cloud/v1/servers"; then
-	cat "servers.json"
-	exit_with_failure "Failed to create Server in Hetzner Cloud!"
-fi
+		echo "Server created successfully."
+		break
+	else
+		# Check if the error is related to resource unavailability
+		if grep -q -E "resource_unavailable|resource_limit_exceeded" "servers.json"; then
+  			echo "Resource limitation detected."
+                # If error is not resource-related, don't retry
+	 	else
+            		cat "servers.json"
+  			exit_with_failure "Failed to create Server in Hetzner Cloud!"
+        	fi
+	fi
+
+	RETRY_COUNT=$((RETRY_COUNT + 1)) # Increment retry counter
+
+	echo "Failed to create Server. Wait $WAIT_SEC seconds... (Attempt $RETRY_COUNT/$MAX_RETRIES)"
+	sleep "$WAIT_SEC"
+done
 
 # Get the Hetzner Server ID from the JSON response (assuming valid JSON)
 MY_HETZNER_SERVER_ID=$(jq -er '.server.id' < "servers.json")
@@ -393,7 +419,6 @@ echo "server_id=$MY_HETZNER_SERVER_ID" >> "$GITHUB_OUTPUT"
 
 # Wait for server
 MAX_RETRIES=$MY_SERVER_WAIT
-WAIT_SEC=10
 RETRY_COUNT=0
 echo "Wait for server..."
 while [[ $RETRY_COUNT -lt $MAX_RETRIES ]]; do
